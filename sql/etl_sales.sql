@@ -1,0 +1,114 @@
+-- Load data into DRINKMIX_TIME
+CREATE SEQUENCE TIME_SEQ
+START WITH 1
+INCREMENT BY 1;
+
+INSERT INTO DRINKMIX_TIME
+(
+    TIME_ID,
+    DAY,
+    WEEK,
+    MONTH,
+    QUATER,
+    YEAR
+)
+SELECT
+    TIME_SEQ.NEXTVAL,
+    TO_NUMBER(TO_CHAR(TO_DATE(SALE_DATE,'DD.MM.RR'),'DD')),
+    TO_NUMBER(TO_CHAR(TO_DATE(SALE_DATE,'DD.MM.RR'),'IW')),
+    TO_NUMBER(TO_CHAR(TO_DATE(SALE_DATE,'DD.MM.RR'),'MM')),
+    TO_NUMBER(TO_CHAR(TO_DATE(SALE_DATE,'DD.MM.RR'),'Q')),
+    TO_NUMBER(TO_CHAR(TO_DATE(SALE_DATE,'DD.MM.RR'),'YYYY'))
+FROM VW_UNIQUE_DATES;
+
+-- DRINKMIX_FACT_SALES
+-- insert data from branch 1
+INSERT INTO DRINKMIX_FACT_SALES
+(
+    TIME_ID,
+    CUSTOMER_ID,
+    PRODUCT_ID,
+    BRANCH_ID,
+    QUANTITY_LITER
+)
+    SELECT
+        t.TIME_ID,
+        cbm.CUSTOMER_ID,
+        pbm.PRODUCT_ID,
+        1 AS BRANCH_ID,
+        o.AMOUNT * p.PRODUCT_SIZE AS QUANTITY_LITER
+    FROM DWT_BRANCH_1."ORDER" o
+    JOIN CUSTOMER_BRANCH_MAP cbm
+        ON cbm.BRANCH_ID = 1
+       AND cbm.SOURCE_CUSTOMER_ID = o.CSTMR
+    JOIN PRODUCT_BRANCH_MAP pbm
+        ON pbm.BRANCH_ID = 1
+       AND pbm.SOURCE_PRODUCT_ID = o.PRO
+    JOIN DRINKMIX_PRODUCT p
+        ON p.PRODUCT_ID = pbm.PRODUCT_ID
+    JOIN DRINKMIX_TIME t
+        ON t.DAY   = EXTRACT(DAY FROM o."DATE")
+       AND t.MONTH = EXTRACT(MONTH FROM o."DATE")
+       AND t.YEAR  = EXTRACT(YEAR FROM o."DATE");
+       
+ -- insert data from branch 2 and it has wrong datatype in Amount attribute so I've changed it into numbers     
+INSERT INTO DRINKMIX_FACT_SALES
+(
+    TIME_ID,
+    CUSTOMER_ID,
+    PRODUCT_ID,
+    BRANCH_ID,
+    QUANTITY_LITER
+)
+    SELECT
+        t.TIME_ID,
+        cbm.CUSTOMER_ID,
+        pbm.PRODUCT_ID,
+        2 AS BRANCH_ID,
+        CASE b.AMOUNT
+          WHEN 'two'   THEN 2
+          WHEN 'three' THEN 3
+          WHEN 'four'  THEN 4
+        END * p.PRODUCT_SIZE AS QUANTITY_LITER
+    FROM DWT_BRANCH_2."BUYS" b
+    JOIN CUSTOMER_BRANCH_MAP cbm
+        ON cbm.BRANCH_ID = 2
+       AND cbm.SOURCE_CUSTOMER_ID = b.CNUMBER
+    JOIN PRODUCT_BRANCH_MAP pbm
+        ON pbm.BRANCH_ID = 2
+       AND pbm.SOURCE_PRODUCT_ID = b.PNUMBER
+    JOIN DRINKMIX_PRODUCT p
+        ON p.PRODUCT_ID = pbm.PRODUCT_ID
+    JOIN DRINKMIX_TIME t
+        ON t.DAY   = EXTRACT(DAY FROM b."DATE")
+       AND t.MONTH = EXTRACT(MONTH FROM b."DATE")
+       AND t.YEAR  = EXTRACT(YEAR FROM b."DATE");
+
+ -- insert data from branch 3
+INSERT INTO DRINKMIX_FACT_SALES
+(
+    TIME_ID,
+    CUSTOMER_ID,
+    PRODUCT_ID,
+    BRANCH_ID,
+    QUANTITY_LITER
+)
+    SELECT
+        t.TIME_ID,
+        cbm.CUSTOMER_ID,
+        pbm.PRODUCT_ID,
+        3 AS BRANCH_ID,
+        o.AMOUNT * p.PRODUCT_SIZE AS QUANTITY_LITER
+    FROM DWT_BRANCH_3."ORDER" o
+    JOIN CUSTOMER_BRANCH_MAP cbm
+        ON cbm.BRANCH_ID = 3
+       AND cbm.SOURCE_CUSTOMER_ID = o.CSTMR
+    JOIN PRODUCT_BRANCH_MAP pbm
+        ON pbm.BRANCH_ID = 3
+       AND pbm.SOURCE_PRODUCT_ID = o.PRO
+    JOIN DRINKMIX_PRODUCT p
+        ON p.PRODUCT_ID = pbm.PRODUCT_ID
+    JOIN DRINKMIX_TIME t
+        ON t.DAY   = EXTRACT(DAY FROM o."DATE")
+       AND t.MONTH = EXTRACT(MONTH FROM o."DATE")
+       AND t.YEAR  = EXTRACT(YEAR FROM o."DATE"); 
