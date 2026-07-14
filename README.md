@@ -141,9 +141,8 @@ sql/
 └── analytics.sql
 
 docs/
-├── star_schema.png
-├── mer_model.png
-└── project_report.pdf
+├── StarSchema.png
+└── MER_Diagramodel.png
 
 screenshots/
 ├── customer_dimension.png
