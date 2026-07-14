@@ -1,0 +1,17 @@
+-- Total Sales Volume
+SELECT
+    ROUND(SUM(QUANTITY_LITER),2)
+FROM DRINKMIX_FACT_SALES;
+
+-- Total Turnover
+SELECT
+    ROUND(
+        SUM(
+            (f.QUANTITY_LITER/p.PRODUCT_SIZE)
+            * p.PRODUCT_PRICE
+        ),
+        2
+    ) AS TURNOVER
+FROM DRINKMIX_FACT_SALES f
+JOIN DRINKMIX_PRODUCT p
+ON p.PRODUCT_ID=f.PRODUCT_ID;
